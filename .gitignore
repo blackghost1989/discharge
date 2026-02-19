@@ -1,0 +1,9 @@
+# Agent metadata and temp files
+*.metadata.json
+*.resolved
+*.resolved.*
+.system_generated/
+.tempmediaStorage/
+*.png
+*.webp
+.DS_Store

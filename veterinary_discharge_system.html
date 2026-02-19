@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>獸醫術後出院須知產生器</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            /* Default Blue */
+            --bg-color: #f4f7f6;
+            --container-bg: #fff;
+            --border-color: #ddd;
+        }
+
+        body.mode-general {
+            --accent-color: #e67e22;
+            /* Orange for Surgery */
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--primary-color);
+        }
+
+        /* Tabs Navigation */
+        .nav-tabs {
+            background: var(--secondary-color);
+            padding: 10px 20px 0;
+            display: flex;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            border: none;
+            background: #455a64;
+            color: #bdc3c7;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-color);
+            color: var(--primary-color);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #546e7a;
+            color: white;
+        }
+
+        .main-wrapper {
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Form Styling */
+        .form-section {
+            flex: 1;
+            background: var(--container-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 5px;
+            align-items: flex-start;
+        }
+
+        .library-select {
+            font-size: 0.8em;
+            width: auto;
+            max-width: 150px;
+        }
+
+        .save-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="tel"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .checkbox-group,
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .checkbox-item,
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #eee;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        /* Preview Styling */
+        .preview-section {
+            flex: 1;
+            background: var(--container-bg);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-content {
+            flex-grow: 1;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .preview-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-header h2 {
+            margin: 0;
+            border: none;
+        }
+
+        .preview-hospital-info {
+            text-align: center;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .patient-summary {
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-left: 4px solid var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .print-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            align-self: center;
+            transition: background 0.3s;
+        }
+
+        .print-button:hover {
+            filter: brightness(0.9);
+        }
+
+        /* Dynamic Input Controls */
+        .dynamic-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* Print Specifics (Optimized for A4) */
+        @media print {
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+
+            .nav-tabs,
+            .form-section,
+            .print-button {
+                display: none;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+                color: black;
+                font-size: 11.5pt;
+            }
+
+            .container {
+                display: block;
+            }
+
+            .preview-section {
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                position: static;
+            }
+
+            h4 {
+                margin-top: 10px;
+                margin-bottom: 5px;
+                font-size: 1.1em;
+            }
+
+            p,
+            ul {
+                margin-top: 5px;
+                margin-bottom: 5px;
+            }
+
+            .preview-header {
+                margin-bottom: 12px;
+            }
+
+            .preview-header h2 {
+                font-size: 1.4em;
+            }
+
+            .preview-hospital-info {
+                margin-bottom: 8px;
+            }
+
+            .patient-summary {
+                margin-bottom: 8px;
+                padding: 6px 10px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="nav-tabs">
+        <button class="tab-btn active" id="btn-dental" onclick="switchTab('dental')">牙科術後</button>
+        <button class="tab-btn" id="btn-general" onclick="switchTab('general')">一般手術</button>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <!-- Consolidated Form -->
+            <div class="form-section">
+                <!-- Shared Header Info -->
+                <section>
+                    <h3>基本資料</h3>
+                    <div class="form-group">
+                        <label>今日日期</label>
+                        <input type="date" id="input-date">
+                    </div>
+                    <div class="form-group">
+                        <label>獸醫師姓名</label>
+                        <div class="input-row">
+                            <input type="text" id="input-vet" placeholder="例如：王小明 獸醫師">
+                            <select class="library-select" id="lib-vet" onchange="useLibrary('input-vet', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-vet', this)">儲存</button>
+                        </div>
+                    </div>
+                    <!-- Procedure Name (General Surgery Only) -->
+                    <div class="form-group mode-only-general hidden">
+                        <label>手術名稱 / 醫療程序</label>
+                        <div class="input-row">
+                            <input type="text" id="input-procedure-main" placeholder="例如：絕育手術、腫瘤切除">
+                            <select class="library-select" id="lib-procedure-main"
+                                onchange="useLibrary('input-procedure-main', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-procedure-main', this)">儲存</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Shared Hospital Info -->
+                <section>
+                    <h3>醫院資料</h3>
+                    <div class="form-group">
+                        <label>醫院名稱</label>
+                        <div class="input-row">
+                            <input type="text" id="input-hospital" placeholder="您的動物醫院名稱">
+                            <select class="library-select" id="lib-hospital"
+                                onchange="useLibrary('input-hospital', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-hospital', this)">儲存</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>醫院地址</label>
+                        <div class="input-row">
+                            <textarea id="input-address" rows="2"></textarea>
+                            <select class="library-select" id="lib-address"
+                                onchange="useLibrary('input-address', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-address', this)">儲存</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>聯繫電話</label>
+                        <div class="input-row">
+                            <input type="tel" id="input-phone">
+                            <select class="library-select" id="lib-phone" onchange="useLibrary('input-phone', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-phone', this)">儲存</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>急診聯絡資訊</label>
+                        <div class="input-row">
+                            <input type="text" id="input-emergency" placeholder="如：XX 24H 急診醫院 (02) 1234-5678">
+                            <select class="library-select" id="lib-emergency"
+                                onchange="useLibrary('input-emergency', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-emergency', this)">儲存</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Shared Patient Info -->
+                <section>
+                    <h3>病患資料</h3>
+                    <div class="form-group">
+                        <label>寵物姓名</label>
+                        <input type="text" id="input-petname" placeholder="小黑">
+                    </div>
+                    <div class="form-group">
+                        <label>性別</label>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="gender" value="他" data-label="公"
+                                    checked> 公</label>
+                            <label class="radio-item"><input type="radio" name="gender" value="他" data-label="公 (已結紮)">
+                                公 (已結紮)</label>
+                            <label class="radio-item"><input type="radio" name="gender" value="她" data-label="母">
+                                母</label>
+                            <label class="radio-item"><input type="radio" name="gender" value="她" data-label="母 (已結紮)">
+                                母 (已結紮)</label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dental Specific Content -->
+                <div id="content-dental">
+                    <section>
+                        <h3>今日牙科項目</h3>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" class="procedure-preset" value="口腔檢查">
+                                口腔檢查</label>
+                            <label class="checkbox-item"><input type="checkbox" class="procedure-preset" value="術前血檢">
+                                術前血檢</label>
+                            <label class="checkbox-item"><input type="checkbox" class="procedure-preset"
+                                    value="全口 X 光檢查"> 全口 X 光</label>
+                            <label class="checkbox-item"><input type="checkbox" class="procedure-preset"
+                                    value="超音波洗牙及拋光"> 洗牙拋光</label>
+                            <label class="checkbox-item"><input type="checkbox" class="procedure-preset" value="局部封閉治療">
+                                封閉治療</label>
+                        </div>
+                        <div id="other-treatments-container" style="margin-top:10px;">
+                            <label>其他牙科治療</label>
+                        </div>
+                        <button type="button" onclick="addOtherTreatmentLine()"
+                            style="font-size: 0.8em; padding: 2px 8px;">+ 新增項目</button>
+
+                        <div class="form-group" style="margin-top:15px;">
+                            <label>是否拔牙？</label>
+                            <div class="radio-group">
+                                <label class="radio-item"><input type="radio" name="extraction" value="yes"> 是</label>
+                                <label class="radio-item"><input type="radio" name="extraction" value="no" checked>
+                                    否</label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h3>麻醉狀況</h3>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="anesthesia" value="smooth" checked>
+                                平穩</label>
+                            <label class="radio-item"><input type="radio" name="anesthesia" value="complication">
+                                有併發症</label>
+                        </div>
+                        <div id="anesthesia-desc-group" class="form-group hidden" style="margin-top:10px;">
+                            <label>併發症說明</label>
+                            <textarea id="input-anesthesia-desc" rows="2"></textarea>
+                        </div>
+                        <div class="form-group" style="margin-top:10px;">
+                            <label>預計完全清醒時間 (小時)</label>
+                            <input type="text" id="input-anesthesia-time" value="2-4">
+                        </div>
+                    </section>
+                </div>
+
+                <!-- General Surgery Specific Content -->
+                <div id="content-general" class="hidden">
+                    <section>
+                        <h3>傷口與穿著</h3>
+                        <div class="form-group">
+                            <label>傷口照護指示</label>
+                            <div class="input-row">
+                                <textarea id="input-wound-care" rows="2">每日兩次檢查傷口是否紅腫、滲液。請勿讓寵物舔舐或抓撓傷口。</textarea>
+                                <select class="library-select" id="lib-wound-care"
+                                    onchange="useLibrary('input-wound-care', this)">
+                                    <option value="">選取已存...</option>
+                                </select>
+                                <button class="save-btn" onclick="saveToLibrary('input-wound-care', this)">儲存</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>頭套 (E-Collar) 配戴</label>
+                            <div class="input-row">
+                                <input type="text" id="input-collar" value="請全天配戴頭套直到複診/拆線為止。">
+                                <select class="library-select" id="lib-collar"
+                                    onchange="useLibrary('input-collar', this)">
+                                    <option value="">選取已存...</option>
+                                </select>
+                                <button class="save-btn" onclick="saveToLibrary('input-collar', this)">儲存</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Shared Recovery & Care -->
+                <section>
+                    <h3>居家照護與複診</h3>
+                    <div class="form-group">
+                        <label>點滴留置針位置 (如有)</label>
+                        <select id="input-iv-site">
+                            <option value="左前肢">左前肢</option>
+                            <option value="右前肢">右前肢</option>
+                            <option value="左後肢">左後肢</option>
+                            <option value="右後肢">右後肢</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>膠帶何時移除？</label>
+                        <div class="input-row">
+                            <input type="text" id="input-bandage-remove" value="回家後 30 分鐘">
+                            <select class="library-select" id="lib-bandage-remove"
+                                onchange="useLibrary('input-bandage-remove', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-bandage-remove', this)">儲存</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>飲食建議</label>
+                        <div class="input-row">
+                            <textarea id="input-diet" rows="2">今日給予少量飲水，若無嘔吐可與少量軟食。</textarea>
+                            <select class="library-select" id="lib-diet" onchange="useLibrary('input-diet', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-diet', this)">儲存</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>活動限制</label>
+                        <div class="input-row">
+                            <textarea id="input-activity" rows="2">請限制劇烈活動，避免跳躍或爬樓梯。</textarea>
+                            <select class="library-select" id="lib-activity"
+                                onchange="useLibrary('input-activity', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-activity', this)">儲存</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>藥物說明</label>
+                        <div id="meds-container"></div>
+                        <button type="button" onclick="addMedLine()" style="font-size: 0.8em; padding: 2px 8px;">+
+                            新增藥物</button>
+                    </div>
+                    <div class="form-group">
+                        <label>建議複診/拆線時間</label>
+                        <div class="input-row">
+                            <input type="text" id="input-recheck" value="10-14 天後">
+                            <select class="library-select" id="lib-recheck"
+                                onchange="useLibrary('input-recheck', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-recheck', this)">儲存</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>給家長的話</label>
+                        <div class="input-row">
+                            <textarea id="input-closing" rows="2">今天辛苦了！回家的路上請注意保暖。</textarea>
+                            <select class="library-select" id="lib-closing"
+                                onchange="useLibrary('input-closing', this)">
+                                <option value="">選取已存...</option>
+                            </select>
+                            <button class="save-btn" onclick="saveToLibrary('input-closing', this)">儲存</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button type="button" onclick="updatePreview()"
+                        style="background: var(--secondary-color); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">手動更新預覽</button>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <div class="preview-content" id="printable-area">
+                    <div class="preview-header">
+                        <h2 id="p-title">術後出院須知</h2>
+                    </div>
+                    <div class="preview-hospital-info">
+                        <strong id="p-hospital">動物醫院</strong><br>
+                        <span id="p-address">醫院地址</span><br>
+                        電話：<span id="p-phone">00-0000-0000</span> | 日期：<span id="p-date">YYYY-MM-DD</span>
+                    </div>
+
+                    <div class="patient-summary">
+                        病患姓名：<strong id="p-petname">寵物</strong> (<span id="p-gender">性別</span>)<br>
+                        <span id="p-proc-line" class="hidden">手術項目：<strong
+                                id="p-procedure-main">項目名稱</strong><br></span>
+                        主治醫師：<span id="p-vet">獸醫師</span>
+                    </div>
+
+                    <div id="p-content">
+                        <p><strong id="p-petname2">寵物</strong> 今天接受了治療。以下是詳細的術後照護說明：</p>
+
+                        <!-- Dental Findings (Only Dental) -->
+                        <div id="p-dental-results">
+                            <h4>1. 完成項目與發現</h4>
+                            <ul id="p-procedures"></ul>
+                            <p id="p-extraction-note" class="hidden"><strong>注意：</strong> 今日有進行拔牙，傷口處可能會有輕微血水，此為正常現象。
+                            </p>
+                        </div>
+
+                        <!-- General Care Header (Only General) -->
+                        <div id="p-general-wound" class="hidden">
+                            <h4>1. 傷口照護與保護</h4>
+                            <p><strong>說明：</strong> <span id="p-wound-care">每日檢查傷口狀況。</span></p>
+                            <p><strong>保護：</strong> <span id="p-collar">請戴好頭套。</span></p>
+                        </div>
+
+                        <!-- Shared Care Content -->
+                        <h4>2. 麻醉與點滴</h4>
+                        <p id="p-anesthesia-line">麻醉過程十分平穩。預計在 <span id="p-anesthesia-time">2-4</span> 小時內會完全清醒。</p>
+                        <p>留置針位於 <span id="p-iv-site">肢體</span>，纏繞的膠帶請在 <span id="p-bandage-remove">時間</span> 拆除。</p>
+
+                        <h4>3. 居家復原</h4>
+                        <p><strong>飲食：</strong> <span id="p-diet">飲食建議內容。</span></p>
+                        <p><strong>活動：</strong> <span id="p-activity">活動限制內容。</span></p>
+                        <div id="p-meds-section">
+                            <strong>藥物：</strong>
+                            <ul id="p-meds-list"></ul>
+                        </div>
+
+                        <h4>4. 複診與追蹤</h4>
+                        <p>建議於 <strong id="p-recheck">時間</strong> 返院追蹤狀況。</p>
+
+                        <p style="margin-top:20px;"><em id="p-closing">文字內容。</em></p>
+
+                        <div
+                            style="margin-top:30px; border-top: 1px solid #eee; padding-top: 10px; font-size: 0.85em; color: #666;">
+                            緊急聯絡：<span id="p-emergency"></span>
+                        </div>
+                    </div>
+                </div>
+                <button class="print-button" onclick="window.print()">列印出院須知</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const LIBRARY_KEY = 'dental_options_library';
+        let currentMode = 'dental';
+
+        const inputs = {
+            date: document.getElementById('input-date'),
+            vet: document.getElementById('input-vet'),
+            hospital: document.getElementById('input-hospital'),
+            address: document.getElementById('input-address'),
+            phone: document.getElementById('input-phone'),
+            emergency: document.getElementById('input-emergency'),
+            petname: document.getElementById('input-petname'),
+            procMain: document.getElementById('input-procedure-main'),
+            anesthesiaTime: document.getElementById('input-anesthesia-time'),
+            anesthesiaDesc: document.getElementById('input-anesthesia-desc'),
+            woundCare: document.getElementById('input-wound-care'),
+            collar: document.getElementById('input-collar'),
+            ivSite: document.getElementById('input-iv-site'),
+            bandageRemove: document.getElementById('input-bandage-remove'),
+            diet: document.getElementById('input-diet'),
+            activity: document.getElementById('input-activity'),
+            recheck: document.getElementById('input-recheck'),
+            closing: document.getElementById('input-closing')
+        };
+
+        const previews = {
+            title: document.getElementById('p-title'),
+            date: document.getElementById('p-date'),
+            vet: document.getElementById('p-vet'),
+            hospital: document.getElementById('p-hospital'),
+            address: document.getElementById('p-address'),
+            phone: document.getElementById('p-phone'),
+            emergency: document.getElementById('p-emergency'),
+            petname: document.getElementById('p-petname'),
+            petname2: document.getElementById('p-petname2'),
+            gender: document.getElementById('p-gender'),
+            procMain: document.getElementById('p-procedure-main'),
+            procLine: document.getElementById('p-proc-line'),
+            extractionNote: document.getElementById('p-extraction-note'),
+            anesthesiaLine: document.getElementById('p-anesthesia-line'),
+            anesthesiaTime: document.getElementById('p-anesthesia-time'),
+            woundCare: document.getElementById('p-wound-care'),
+            collar: document.getElementById('p-collar'),
+            ivSite: document.getElementById('p-iv-site'),
+            bandageRemove: document.getElementById('p-bandage-remove'),
+            diet: document.getElementById('p-diet'),
+            activity: document.getElementById('p-activity'),
+            recheck: document.getElementById('p-recheck'),
+            closing: document.getElementById('p-closing'),
+            procedures: document.getElementById('p-procedures'),
+            medsList: document.getElementById('p-meds-list')
+        };
+
+        function switchTab(mode) {
+            currentMode = mode;
+            document.body.className = mode === 'general' ? 'mode-general' : '';
+
+            document.getElementById('btn-dental').classList.toggle('active', mode === 'dental');
+            document.getElementById('btn-general').classList.toggle('active', mode === 'general');
+
+            document.getElementById('content-dental').classList.toggle('hidden', mode !== 'dental');
+            document.getElementById('content-general').classList.toggle('hidden', mode !== 'general');
+            document.querySelectorAll('.mode-only-general').forEach(el => el.classList.toggle('hidden', mode !== 'general'));
+
+            // Preview blocks
+            document.getElementById('p-dental-results').classList.toggle('hidden', mode !== 'dental');
+            document.getElementById('p-general-wound').classList.toggle('hidden', mode !== 'general');
+            previews.procLine.classList.toggle('hidden', mode !== 'general');
+
+            previews.title.textContent = mode === 'dental' ? '牙科手術出院須知' : '一般手術出院須知';
+
+            updatePreview();
+        }
+
+        function createDynamicRow(containerId, value = '') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = 'dynamic-row';
+            const input = document.createElement('input');
+            input.type = 'text'; input.value = value;
+            input.placeholder = containerId.includes('meds') ? '藥物名稱與用法' : '治療項目';
+            input.addEventListener('input', updatePreview);
+            const btn = document.createElement('button');
+            btn.type = 'button'; btn.textContent = '✕'; btn.style.padding = '0 10px';
+            btn.onclick = () => { div.remove(); updatePreview(); };
+            div.appendChild(input); div.appendChild(btn);
+            container.appendChild(div);
+            return input;
+        }
+
+        function addMedLine(val = '') { createDynamicRow('meds-container', val); updatePreview(); }
+        function addOtherTreatmentLine(val = '') { createDynamicRow('other-treatments-container', val); updatePreview(); }
+
+        function saveToLibrary(inputId, btn) {
+            const val = document.getElementById(inputId).value.trim();
+            if (!val) return;
+            const originalText = btn.textContent;
+            let lib = JSON.parse(localStorage.getItem(LIBRARY_KEY)) || {};
+            if (!lib[inputId]) lib[inputId] = [];
+            if (!lib[inputId].includes(val)) {
+                lib[inputId].push(val);
+                localStorage.setItem(LIBRARY_KEY, JSON.stringify(lib));
+                renderLibrary(inputId);
+                btn.textContent = '已儲存！'; btn.style.background = '#2ecc71';
+                setTimeout(() => { btn.textContent = originalText; btn.style.background = '#27ae60'; }, 2000);
+            }
+        }
+
+        function renderLibrary(inputId) {
+            const lib = JSON.parse(localStorage.getItem(LIBRARY_KEY)) || {};
+            const select = document.getElementById(inputId.replace('input-', 'lib-'));
+            if (!select) return;
+            const first = select.options[0];
+            select.innerHTML = ''; select.appendChild(first);
+            if (lib[inputId]) {
+                lib[inputId].forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v; opt.textContent = v.length > 20 ? v.substring(0, 20) + '...' : v;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function useLibrary(inputId, select) {
+            if (!select.value) return;
+            document.getElementById(inputId).value = select.value;
+            select.value = ''; updatePreview();
+        }
+
+        function updatePreview() {
+            previews.date.textContent = inputs.date.value;
+            previews.vet.textContent = inputs.vet.value || '獸醫師';
+            previews.hospital.textContent = inputs.hospital.value || '動物醫院';
+            previews.address.textContent = inputs.address.value || '醫院地址';
+            previews.phone.textContent = inputs.phone.value || '00-0000-0000';
+            previews.emergency.textContent = inputs.emergency.value;
+            const pet = inputs.petname.value || '寵物名';
+            previews.petname.textContent = pet; previews.petname2.textContent = pet;
+            const gender = document.querySelector('input[name="gender"]:checked');
+            previews.gender.textContent = gender ? gender.dataset.label : '';
+
+            if (currentMode === 'dental') {
+                const presets = Array.from(document.querySelectorAll('.procedure-preset:checked')).map(cb => cb.value);
+                const others = Array.from(document.querySelectorAll('#other-treatments-container input')).map(i => i.value).filter(v => v);
+                previews.procedures.innerHTML = [...presets, ...others].map(p => `<li>${p}</li>`).join('');
+                previews.extractionNote.classList.toggle('hidden', document.querySelector('input[name="extraction"]:checked')?.value !== 'yes');
+
+                const anesthesia = document.querySelector('input[name="anesthesia"]:checked')?.value;
+                const descGroup = document.getElementById('anesthesia-desc-group');
+                if (anesthesia === 'smooth') {
+                    descGroup.classList.add('hidden');
+                    previews.anesthesiaLine.textContent = `麻醉過程十分平穩。預計在 ${inputs.anesthesiaTime.value} 小時內會完全清醒。`;
+                } else {
+                    descGroup.classList.remove('hidden');
+                    previews.anesthesiaLine.textContent = `麻醉過程中發生併發症（${inputs.anesthesiaDesc.value || '未註明'}），但目前穩定復原中。預計在 ${inputs.anesthesiaTime.value} 小時內會清醒。`;
+                }
+            } else {
+                previews.procMain.textContent = inputs.procMain.value || '手術項目';
+                previews.woundCare.textContent = inputs.woundCare.value;
+                previews.collar.textContent = inputs.collar.value;
+                previews.anesthesiaLine.textContent = `手術與麻醉過程順利。`;
+            }
+
+            previews.ivSite.textContent = inputs.ivSite.value;
+            previews.bandageRemove.textContent = inputs.bandageRemove.value;
+            previews.diet.textContent = inputs.diet.value;
+            previews.activity.textContent = inputs.activity.value;
+            const meds = Array.from(document.querySelectorAll('#meds-container input')).map(i => i.value).filter(v => v);
+            previews.medsList.innerHTML = meds.map(m => `<li>${m}</li>`).join('');
+            previews.recheck.textContent = inputs.recheck.value;
+            previews.closing.textContent = inputs.closing.value;
+        }
+
+        // Init
+        ['input-vet', 'input-hospital', 'input-address', 'input-phone', 'input-emergency', 'input-procedure-main', 'input-wound-care', 'input-collar', 'input-bandage-remove', 'input-diet', 'input-activity', 'input-recheck', 'input-closing'].forEach(renderLibrary);
+        addMedLine('請務必按照醫囑按時服用藥物。');
+        inputs.date.valueAsDate = new Date();
+
+        Object.values(inputs).forEach(i => i?.addEventListener('input', updatePreview));
+        document.querySelectorAll('input[type="radio"], input[type="checkbox"], select:not(.library-select)').forEach(i => i.addEventListener('change', updatePreview));
+
+        switchTab('dental');
+    </script>
+</body>
+
+</html>
