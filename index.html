@@ -336,6 +336,13 @@
                 <section>
                     <h3>醫院資料</h3>
                     <div class="form-group">
+                        <label>上傳醫院 Logo</label>
+                        <div class="input-row">
+                            <input type="file" id="input-logo" accept="image/*" style="padding: 4px;">
+                            <button class="save-btn" onclick="clearLogo()" style="background: #e74c3c;">清除 Logo</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>醫院名稱</label>
                         <div class="input-row">
                             <input type="text" id="input-hospital" placeholder="您的動物醫院名稱">
@@ -566,6 +573,8 @@
             <div class="preview-section">
                 <div class="preview-content" id="printable-area">
                     <div class="preview-header">
+                        <img id="p-logo" alt="醫院Logo"
+                            style="max-height: 80px; width: auto; margin-bottom: 10px; display: none;">
                         <h2 id="p-title">術後出院須知</h2>
                     </div>
                     <div class="preview-hospital-info">
@@ -810,6 +819,42 @@
         document.querySelectorAll('input[type="radio"], input[type="checkbox"], select:not(.library-select)').forEach(i => i.addEventListener('change', updatePreview));
 
         switchTab('dental');
+
+        // Logo Upload Handling
+        const logoInput = document.getElementById('input-logo');
+        const pLogo = document.getElementById('p-logo');
+
+        logoInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const dataUrl = e.target.result;
+                    pLogo.src = dataUrl;
+                    pLogo.style.display = 'inline-block';
+                    try {
+                        localStorage.setItem('hospital_logo_base64', dataUrl);
+                    } catch (err) {
+                        console.warn('LocalStorage quota exceeded:', err);
+                        alert('圖片檔案過大，無法儲存至瀏覽器！\n本次列印仍有效，但下次重新整理可能需要重新上傳。請盡量提供較小的圖片檔案。');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function clearLogo() {
+            logoInput.value = '';
+            pLogo.src = '';
+            pLogo.style.display = 'none';
+            localStorage.removeItem('hospital_logo_base64');
+        }
+
+        const savedLogo = localStorage.getItem('hospital_logo_base64');
+        if (savedLogo) {
+            pLogo.src = savedLogo;
+            pLogo.style.display = 'inline-block';
+        }
     </script>
 </body>
 
