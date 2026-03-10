@@ -320,6 +320,15 @@
                     </div>
                     <!-- Procedure Name (General Surgery Only) -->
                     <div class="form-group mode-only-general hidden">
+                        <label>手術快捷範本 (可快速帶入建議內容)</label>
+                        <select id="select-surgery-preset" onchange="applySurgeryPreset(this.value)" style="margin-bottom: 10px; border: 2px solid var(--accent-color);">
+                            <option value="">-- 請選擇手術類型 --</option>
+                            <option value="male_neuter">公犬/貓 結紮 (Neuter)</option>
+                            <option value="female_spay">母犬/貓 結紮 (Spay)</option>
+                            <option value="mass_removal">腫瘤切除 (Mass Removal)</option>
+                            <option value="orthopedic">骨科手術 (Orthopedic)</option>
+                            <option value="wound_debridement">傷口清創 (Debridement)</option>
+                        </select>
                         <label>手術名稱 / 醫療程序</label>
                         <div class="input-row">
                             <input type="text" id="input-procedure-main" placeholder="例如：絕育手術、腫瘤切除">
@@ -848,6 +857,70 @@
             pLogo.src = '';
             pLogo.style.display = 'none';
             localStorage.removeItem('hospital_logo_base64');
+        }
+
+        const SURGERY_PRESETS = {
+            'male_neuter': {
+                procedure: '公犬/貓 結紮 (Neuter)',
+                wound: '傷口位於陰囊前方/陰囊處，通常不需縫合或僅有極小縫線。請每日檢查有無異常紅腫或滲液。',
+                collar: '建議配戴頭套 3-5 天，防止寵物過度舔拭傷口導致感染。',
+                diet: '麻醉退後先少量飲水，無嘔吐可給予 1/3 平時食量。隔日恢復正常。',
+                activity: '3 天內限制劇烈跳躍及奔跑，保持環境乾燥整潔。',
+                recheck: '不需拆線 (若有特別告知除外)，可於 7 天後返院複查。',
+                closing: '小帥哥手術順利！回家後請多加休息。'
+            },
+            'female_spay': {
+                procedure: '母犬/貓 結紮 (Spay)',
+                wound: '腹部中線有約 2-4 公分傷口，請每日檢查縫線是否完整，有無紅腫或大量滲出物。',
+                collar: '請務必全天候配戴頭套直到拆線後 1 天，嚴防舔開傷口。',
+                diet: '術後 4-6 小時後嘗試少量給水，若無嘔吐再給予少量軟食。',
+                activity: '1 週內嚴禁劇烈運動(如爬樓梯、跳躍、翻滾)，避免內層肌肉層縫線斷裂。',
+                recheck: '10-14 天後返院拆線。',
+                closing: '小美女表現很好！這幾天要請家長多費心照護。'
+            },
+            'mass_removal': {
+                procedure: '皮膚腫瘤切除 (Mass Removal)',
+                wound: '手術部位較大且有縫線，請勿讓寵物抓撓。若有血液滲出請及時聯繫醫院。',
+                collar: '必須全程配戴頭套直到醫師指示拆線。',
+                diet: '恢復平時正常飲食即可。',
+                activity: '限制活動，避免因大動作拉扯傷口張力，導致縫線裂開。',
+                recheck: '10-14 天後返院拆線並追蹤病理報告。',
+                closing: '腫瘤已順利切除，後續請注意傷口清潔。'
+            },
+            'orthopedic': {
+                procedure: '骨科手術 (Orthopedic Surgery)',
+                wound: '術部可能會有包紮或長傷口，請保持包紮乾燥。若發現包紮歪掉或潮濕請立即回診。',
+                collar: '必須全程配戴頭套，防止咬破包紮或舔舐傷口。',
+                diet: '正常飲食，可適度補充關節保健品。',
+                activity: '嚴格限制關進籠內或半限制室內活動，僅能由牽繩牽引如廁，嚴禁奔跑跳躍。',
+                recheck: '7 天後回診檢查傷口，4-6 週後照 X 光追蹤骨頭癒合進度。',
+                closing: '骨科手術後的復健期很重要，請務必遵循限制活動的指示。'
+            },
+            'wound_debridement': {
+                procedure: '傷口清創術 (Wound Debridement)',
+                wound: '目前傷口可能保持開放或部分縫合，需勤換藥。請觀察分泌物顏色與氣味。',
+                collar: '必須配戴頭套，避免寵物干擾傷口癒合。',
+                diet: '正常飲食，加強蛋白質補給有助於傷口生長。',
+                activity: '避免傷口接觸髒汙環境。',
+                recheck: '2-3 天後回診更換敷料及評估癒合狀況。',
+                closing: '傷口護理需要耐心，我們一起加油！'
+            }
+        };
+
+        function applySurgeryPreset(key) {
+            const data = SURGERY_PRESETS[key];
+            if (!data) return;
+
+            if (confirm(`確定要帶入手稿範本「${data.procedure}」嗎？這將會覆寫目前的輸入內容。`)) {
+                inputs.procMain.value = data.procedure;
+                inputs.woundCare.value = data.wound;
+                inputs.collar.value = data.collar;
+                inputs.diet.value = data.diet;
+                inputs.activity.value = data.activity;
+                inputs.recheck.value = data.recheck;
+                inputs.closing.value = data.closing;
+                updatePreview();
+            }
         }
 
         const savedLogo = localStorage.getItem('hospital_logo_base64');
